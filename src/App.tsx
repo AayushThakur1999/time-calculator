@@ -1,24 +1,31 @@
-import React from 'react'
+import { useState, useEffect } from 'react'
 
 export default function App() {
-  const [totalDuration, setTotalDuration] = React.useState('');
-  const [hrs, setHrs] = React.useState(0);
-  const [mins, setMins] = React.useState(0);
-  const [secs, setSecs] = React.useState(0);
-  const [isNegative, setIsNegative] = React.useState(false);
-  const [isPositive, setIsPositive] = React.useState(true);
+  const [totalDuration, setTotalDuration] = useState('');
+  const [hrs, setHrs] = useState(0);
+  const [mins, setMins] = useState(0);
+  const [secs, setSecs] = useState(0);
+  const [isNegative, setIsNegative] = useState(false);
+  const [isPositive, setIsPositive] = useState(true);
 
-  document.getElementById("adder")?.addEventListener("click", () => {
-    document.getElementById("inp")?.focus();
+  const buttons = document.querySelectorAll('.btn');
+  buttons.forEach(button => {
+    button.addEventListener('click', () => {
+      document.getElementById('input')!.focus();
+    });
   });
 
-  React.useEffect(() => {
+  // checks whether total is +ve or -ve after operation and based on that sets isPositive and isNegative
+  useEffect(() => {
     if (totalDuration !== '') {
       const timeArray = totalDuration.split(':');
-      const totalPrevSeconds =
-        parseInt(timeArray[0]) * 3600 +
+      let totalPrevSeconds =
+        Math.abs(parseInt(timeArray[0])) * 3600 +
         parseInt(timeArray[1]) * 60 +
         parseInt(timeArray[2]);
+      if (parseInt(timeArray[0]) < 0 || timeArray[0] === '-0') {
+        totalPrevSeconds = -totalPrevSeconds;
+      }
       const totalAfterSubtraction = totalPrevSeconds - (hrs * 3600 + mins * 60 + secs);
       const totalAfterAddition = totalPrevSeconds + (hrs * 3600 + mins * 60 + secs);
       setIsNegative(totalAfterSubtraction < 0);
@@ -26,10 +33,11 @@ export default function App() {
     }
   }, [totalDuration, hrs, mins, secs]);
 
+  // sets the hrs, mins and secs states
   function setTime(event: React.ChangeEvent<HTMLInputElement>) {
     const time = event.target.value;
     const timeArray: string[] = time.split(':');
-    
+
     if (timeArray.length >= 4) {
       alert('Enter time in hrs:mins:seconds format...');
     } else if (timeArray.length === 3) {
@@ -47,7 +55,8 @@ export default function App() {
     }
   }
 
-  function subtractTime() {
+  // handles the addition and subtraction of time
+  function operation(operator: string, isOperator: boolean, positive: boolean) {
     if (totalDuration === '') {
       const timeString = (hrs?.toString() ? hrs.toString() : '') +
         ':' + (mins?.toString() ? mins.toString() : '') +
@@ -56,62 +65,35 @@ export default function App() {
     } else {
       const timeArray: string[] = totalDuration.split(':');
       let totalPrevSeconds: number = (Math.abs(parseInt(timeArray[0])) * 3600) + (parseInt(timeArray[1]) * 60) + parseInt(timeArray[2]);
-
-      if (parseInt(timeArray[0]) < 0) {
+      if (parseInt(timeArray[0]) < 0 || timeArray[0] === '-0') {
         totalPrevSeconds = -totalPrevSeconds;
       }
-
       const totalCurrSeconds: number = (hrs * 3600) + (mins * 60) + secs;
-      const totalAfterSubtraction: number = totalPrevSeconds - totalCurrSeconds;
-      let totalSecsLeft = Math.abs(totalAfterSubtraction);
-      const hours: number = Math.floor(totalSecsLeft / 3600); 
+      const totalAfterOperation: number = eval(`${totalPrevSeconds} ${operator} ${totalCurrSeconds}`);
+      let totalSecsLeft = Math.abs(totalAfterOperation);
+      const hours: number = Math.floor(totalSecsLeft / 3600);
       totalSecsLeft %= 3600;
       const minutes: number = Math.floor(totalSecsLeft / 60);
       totalSecsLeft %= 60;
       const seconds: number = totalSecsLeft;
-      
-      const timeString: string = (isNegative ? '-' : '') + hours.toString() + ':' + minutes.toString() + ':'  + seconds.toString();
-      setTotalDuration(timeString);
-      console.log(totalDuration);
-      
-    }
-  }
 
-  function addTime() {
-    if (totalDuration === '') {
-      const timeString = (hrs?.toString() ? hrs.toString() : '') +
-        ':' + (mins?.toString() ? mins.toString() : '') +
-        ':' + secs?.toString();
-      setTotalDuration(timeString);
-    } else {
-      const timeArray: string[] = totalDuration.split(':');
-      let totalPrevSeconds: number = (Math.abs(parseInt(timeArray[0])) * 3600) + (parseInt(timeArray[1]) * 60) + parseInt(timeArray[2]);
-
-      if (parseInt(timeArray[0]) < 0) {
-        totalPrevSeconds = -totalPrevSeconds;
+      let timeString: string;
+      if (positive) {
+        timeString = (isOperator ? '' : '-') + hours.toString() + ':' + minutes.toString() + ':' + seconds.toString();
+      } else {
+        timeString = (isOperator ? '-' : '') + hours.toString() + ':' + minutes.toString() + ':' + seconds.toString();
       }
-      const totalCurrSeconds: number = (hrs * 3600) + (mins * 60) + secs;
-      const totalAfterAddition: number = totalPrevSeconds + totalCurrSeconds;
-      let totalSecsLeft = Math.abs(totalAfterAddition);
-      const hours: number = Math.floor(totalSecsLeft / 3600); 
-      totalSecsLeft %= 3600;
-      const minutes: number = Math.floor(totalSecsLeft / 60);
-      totalSecsLeft %= 60;
-      const seconds: number = totalSecsLeft;
-      const timeString: string = (isPositive ? '' : '-') + hours.toString() + ':' + minutes.toString() + ':'  + seconds.toString();
       setTotalDuration(timeString);
-      console.log(totalDuration);
-          
     }
   }
 
-
-return (
-  <main>
-    <button className='subtract' onClick={subtractTime}>Subtract</button>
-    <input type="text" id='inp' placeholder='Enter time in hh:mm:ss format...' onChange={setTime} />
-    <button className='add' id='adder' onClick={addTime}>Add</button>
-    <h1>Total time is {totalDuration}</h1>
-  </main>
-)
+  return (
+    <main>
+      <button className='subtract btn' onClick={() => operation('-', isNegative, false)}>Subtract</button>
+      <input type="text" id='input' placeholder='Enter time in hr:min:sec format...' onChange={setTime} />
+      <button className='add btn' onClick={() => operation('+', isPositive, true)}>Add</button>
+      <button className="reset btn" onClick={() => setTotalDuration('0:0:0')}>Reset Time</button>
+      <h1>Total time is {totalDuration}</h1>
+    </main>
+  )
 }
