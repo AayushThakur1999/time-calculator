@@ -89,11 +89,31 @@ export default function App() {
 
   return (
     <main>
-      <button className='subtract btn' onClick={() => operation('-', isNegative, false)}>Subtract</button>
-      <input type="text" id='input' placeholder='Enter time in hr:min:sec format...' onChange={setTime} />
-      <button className='add btn' onClick={() => operation('+', isPositive, true)}>Add</button>
-      <button className="reset btn" onClick={() => setTotalDuration('0:0:0')}>Reset Time</button>
-      <h1>Total time is {totalDuration}</h1>
+      <div className="time-container">
+        <div className='sub-container'>
+          <button
+            className='subtract btn'
+            onClick={() => operation('-', isNegative, false)}
+          >
+            Subtract
+          </button>
+          <input
+            className='time-input'
+            type="text"
+            id='input'
+            placeholder='Enter time in hr:min:sec format...'
+            onChange={setTime}
+          />
+          <button
+            className='add btn'
+            onClick={() => operation('+', isPositive, true)}
+          >
+            Add
+          </button>
+        </div>
+        <button className="reset btn" onClick={() => setTotalDuration('0:0:0')}>Reset Time</button>
+        <h1>Total time is {totalDuration}</h1>
+      </div>
     </main>
   )
 }
